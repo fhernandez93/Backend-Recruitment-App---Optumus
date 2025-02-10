@@ -1,0 +1,4 @@
+.env
+.conda
+/flask_session
+/Flask-Server/test.ipynb
