@@ -26,18 +26,19 @@ auth = identity.web.Auth(
 
 @app.route("/login")
 def login():
-    auth_url = auth.get_authorization_request_url(
-        scopes=variables.SCOPE,
+    return auth.log_in(
+        scopes=variables.SCOPE, # Have user consent to scopes during log-in
         redirect_uri=url_for("auth_response", _external=True)
     )
-    return jsonify({"auth_url": auth_url})
+
+
 
 @app.route(variables.REDIRECT_PATH)
 def auth_response():
     result = auth.complete_log_in(request.args)
     if "error" in result:
-        return jsonify({"error": result}), 400
-    return redirect("http://localhost:3000")
+        return render_template("auth_error.html", result=result)
+    return redirect(url_for("index"))
 
 @app.route("/logout")
 def logout():
@@ -50,6 +51,13 @@ def get_user_info():
     if not user:
         return jsonify({"error": "User not authenticated"}), 401
     return jsonify(user)
+
+@app.route("/")
+def index():
+    user = auth.get_user()
+    if not user:
+        return redirect(url_for("login"))
+    return render_template("index.html", user=user)
 
 @app.route("/call_downstream_api")
 def call_downstream_api():
